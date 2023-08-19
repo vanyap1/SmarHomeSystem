@@ -1,0 +1,16 @@
+baudrate - 19200bps
+
+"out:FFFF:s{cr}"  
+		out - opcode
+		FF+FF - group of outputs for master and slave card
+		s - set identifier
+After send command then board must be return - "0000;ffff;0{CR}"
+	where - 0000 - current inputs value
+		FFFF - current outputs value
+		0 - keep alive timer value.(Reset by input command)
+#aditional commands:
+		
+		"bits::{CR}" - selfters.
+		Will check -> Slave, Master and RTC units and retun -> ":OK{CR}" or ":ERR{CR}" for which.
+
+	
