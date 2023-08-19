@@ -1,0 +1,12 @@
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\bin\Debug\SeriapPortTemplate_project.exe.config
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\bin\Debug\SeriapPortTemplate_project.exe
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\bin\Debug\SeriapPortTemplate_project.pdb
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\bin\Debug\SeriapPortTemplate_project.xml
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.vbprojAssemblyReference.cache
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.Form1.resources
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.Resources.resources
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.vbproj.GenerateResource.cache
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.vbproj.CoreCompileInputs.cache
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.exe
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.xml
+C:\Users\Vanya\AppData\Local\Temporary Projects\SeriapPortTemplate_project\obj\Debug\SeriapPortTemplate_project.pdb
