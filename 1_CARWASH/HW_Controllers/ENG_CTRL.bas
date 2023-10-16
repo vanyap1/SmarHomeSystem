@@ -4,7 +4,7 @@ $hwstack = 40
 $swstack = 16
 $framesize = 32
 $baud = 115200
-$version 1 , 2 , 16
+$version 1 , 2 , 45
 
 test_led alias portd.5   : config test_led = output
 stat_led alias portd.6   : config stat_led = output
@@ -51,20 +51,72 @@ dim data_transfer as byte
 
 Start Adc
 
+dim start_time as word
+
+do
+
+adc_data = Getadc(2)
+vbat = adc_data * callibration_factor
+tmp_str = str(count)
+s = "HB " + format(tmp_str , "000")
+
+
+
+
+
+
+if  pinc.0 = 0 then
+set portb.7                          'VCC Enable
+wait 3
+set portb.6                          'Starter EN
+start_time = 0
+
+do                                    'Check When start
+waitms 100
+incr start_time
+if start_time > 50 then
+goto err_lbl
+end if
+
+adc_data = Getadc(2)
+vbat = adc_data * callibration_factor
+Locate 1 , 1
+Lcd fusing(vbat , "#.#" ) ; "  "
+Locate  2 , 1 : LCD  start_time ; "0   "
+loop until vbat > 13
+reset portb.6
 
 
 do
 adc_data = Getadc(2)
 vbat = adc_data * callibration_factor
-
-
-tmp_str = str(count)
-s = "HB " + format(tmp_str , "000")
 Locate 1 , 1
-Lcd s
-Locate 2 , 1
 Lcd fusing(vbat , "#.#" ) ; "  "
+Locate  2 , 1 : LCD  "RUN     " ;  start_time ; "0   "
 
+loop until pinc.0 = 1
+reset portb.7
+
+ELSE
+
+adc_data = Getadc(2)
+vbat = adc_data * callibration_factor
+Locate 1 , 1
+Lcd fusing(vbat , "#.#" ) ; "  "
+Locate  2 , 1 : LCD  "IDLE     "
+
+end if
+
+
+
+'portb.7 = not pinc.0
+'wait 1
+'if pinc.0 = 0 and vbat < 13.5 then
+'set portb.6
+'wait 3
+'reset portb.6
+'wait 2
+'end if
 
 
 
@@ -73,4 +125,15 @@ Lcd fusing(vbat , "#.#" ) ; "  "
 toggle stat_led
 incr count
 waitms 500
+loop
+
+
+
+err_lbl:
+set fail_led
+reset portb.6
+reset portb.7
+do
+locate 1,1 : lcd "START ERROR"
+
 loop
