@@ -522,7 +522,7 @@ do
          pump_current_h_byte = can_read_data(6)
          pump_current_l_byte =can_read_data(7)
          gateway_data_valid_timer = 0
-         if pump_current > 1000 then : set pump_led : else : reset pump_led : end if
+         if pump_current > 100 then : set pump_led : else : reset pump_led : end if
 
          print #1 , pump_current
 

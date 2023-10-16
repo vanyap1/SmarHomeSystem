@@ -154,7 +154,7 @@ Config Spic = Hard , Master = Yes , Mode = 0 , Clockdiv = Clk2 , Data_order = Ms
 Waitms 10
 '                                                 Ip = 192.168.1.19
 
-Config Tcpip = Noint , Mac = 12.128.12.34.30.250 , Ip = 192.168.1.99 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
+Config Tcpip = Noint , Mac = 12.128.12.14.20.50 , Ip = 192.168.1.19 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
 
 Waitms 10                                          ' long SNTP time
 'dim used variables
