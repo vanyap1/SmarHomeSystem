@@ -512,6 +512,11 @@ do
          relay_delay = can_read_data(2)
       end if
 
+      if RX_ID = &h043 then
+          if can_read_data(1)  >100 then : set pump_led : else : reset pump_led : end if
+      end if
+
+
       if RX_ID = &h069 then
          'Print #1 , hex(RX_ID) ; "> " ; status ; " < " ; hex(can_read_data(1)) ; ";" ; hex(can_read_data(2)) ; ";" ; hex(can_read_data(3)) ; ";" ; hex(can_read_data(4)) ; ";" ; hex(can_read_data(5)) ; ";" ; hex(can_read_data(6)) ; ";" ; hex(can_read_data(7)) ; ";" ;  hex(can_read_data(8))
          dalas_temp = can_read_data(1)
@@ -522,7 +527,7 @@ do
          pump_current_h_byte = can_read_data(6)
          pump_current_l_byte =can_read_data(7)
          gateway_data_valid_timer = 0
-         if pump_current > 100 then : set pump_led : else : reset pump_led : end if
+         'if pump_current >60 then : set pump_led : else : reset pump_led : end if
 
          print #1 , pump_current
 
