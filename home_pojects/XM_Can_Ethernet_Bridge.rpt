@@ -1,6 +1,6 @@
 Report       : XM_Can_Ethernet_Bridge
-Date         : 08-25-2023
-Time         : 16:37:31
+Date         : 04-10-2024
+Time         : 01:09:15
 
 Compiler     : BASCOM-AVR LIBRARY V 2.0.8.1
 Processor    : XM256A3BU
@@ -8,10 +8,9 @@ SRAM         : 4000 hex
 EEPROM       : 1000 hex
 ROMSIZE      : 42000 hex
 
-ROMIMAGE     : 510A hex  -> Will fit into ROM
-ROMIMAGE     :  20746 dec
-FLASH USED   :  7  %
-UART5        :   0.01 % ERROR
+ROMIMAGE     : 55B4 hex  -> Will fit into ROM
+ROMIMAGE     :  21940 dec
+FLASH USED   :  8  %
 UART7        :   0.01 % ERROR
 XTAL         : 32000000 Hz
 
@@ -21,7 +20,7 @@ S-Stacksize  : 200 hex
 S-Stackstart : 5E00 hex
 Framesize    : 200 hex
 Framestart   : 5A00 hex
-Space left   :  9337  dec
+Space left   :  9124  dec
 
 LCD DB7      : PORTB.7
 LCD DB6      : PORTB.6
@@ -245,74 +244,87 @@ S2                               String * 255      2441          9281
 NS2                              Byte              2541          9537 
 RS2                              Byte              2542          9538 
 STR_COM2                         String * 200      2543          9539 
-BAT_ENERGY_LONG                  Long              260C          9740 
-BAT_ENERGY_LONG_0                Byte              260C          9740 
-BAT_ENERGY_LONG_1                Byte              260D          9741 
-BAT_ENERGY_LONG_2                Byte              260E          9742 
-BAT_ENERGY_LONG_3                Byte              260F          9743 
-CAN_BAT_VOLTAGE                  Byte              2610          9744 
-CAN_BAT_CURRENT                  Integer           2611          9745 
-CAN_BAT_CURRENT_0                Byte              2611          9745 
-CAN_BAT_CURRENT_1                Byte              2612          9746 
-SYS_FLAGS                        Byte              2613          9747 
-PUMP_CURRENT                     Byte              2614          9748 
-CAN_OUTPUT_BUFFER                Byte(16)          2615          9749 
-CAN_INPUT_BUFFER                 Byte(16)          2625          9765 
-CAN_WRITE_DATA                   Byte(10)          2635          9781 
-CAN_READ_DATA                    Byte(10)          263F          9791 
-CAN_READ_DATA2                   Byte(10)          2649          9801 
-STATUS                           Byte              2653          9811 
-WR_REQ                           Byte              2654          9812 
-RD_REQ                           Byte              2655          9813 
-B_COUNT                          Word              2656          9814 
+GLOBALPOWERREQUEST               Byte              260C          9740 
+SENSORUNIT                       String(10) * 4    260D          9741 
+SENSORUNITELEMENTS               Byte              263F          9791 
+THERMALZONES                     Integer(3)        2640          9792 
+LIGHTCHANNEL                     Word              2646          9798 
+ADCCHANNEL                       Word              2648          9800 
+SENSORUNITDATAVALID              Byte              264A          9802 
+SU_HIGHLITE_ALM                  Byte              264B          9803 
+SENSORUNITCAN                    Byte(5)           264C          9804 
+TMPWORD                          Word(5)           2651          9809 
+THERMALZONE                      Byte              265B          9819 
+TEMPSINGLE                       Single            265C          9820 
+BAT_ENERGY_LONG                  Long              2660          9824 
+BAT_ENERGY_LONG_0                Byte              2660          9824 
+BAT_ENERGY_LONG_1                Byte              2661          9825 
+BAT_ENERGY_LONG_2                Byte              2662          9826 
+BAT_ENERGY_LONG_3                Byte              2663          9827 
+CAN_BAT_VOLTAGE                  Byte              2664          9828 
+CAN_BAT_CURRENT                  Integer           2665          9829 
+CAN_BAT_CURRENT_0                Byte              2665          9829 
+CAN_BAT_CURRENT_1                Byte              2666          9830 
+SYS_FLAGS                        Byte              2667          9831 
+PUMP_CURRENT                     Byte              2668          9832 
+CAN_OUTPUT_BUFFER                Byte(16)          2669          9833 
+CAN_INPUT_BUFFER                 Byte(16)          2679          9849 
+CAN_WRITE_DATA                   Byte(10)          2689          9865 
+CAN_READ_DATA                    Byte(10)          2693          9875 
+CAN_READ_DATA2                   Byte(10)          269D          9885 
+STATUS                           Byte              26A7          9895 
+WR_REQ                           Byte              26A8          9896 
+RD_REQ                           Byte              26A9          9897 
+B_COUNT                          Word              26AA          9898 
 CAN_READ_REQUEST                 Bit [6]           203B          8251 
-RX_ID                            Word              2658          9816 
-SPORT                            String * 128      265A          9818 
-PEERADDRESS                      Long              26DB          9947 
-PEERPORT                         Word              26DF          9951 
-PEERSIZE                         Word              26E1          9953 
-LOCAL_PORT                       Word              26E3          9955 
-S                                String * 1024     26E6          9958 
-BUF                              Byte(1024)        26E6          9958 
-TEMPW                            Word              2AE7          10983 
-I                                Byte              2AE9          10985 
-BCMD                             Byte              2AEA          10986 
-ETH_STR                          String * 2048     2AEB          10987 
-ETH_TX_BUF                       Byte(2048)        2AEB          10987 
-KEY_POZ                          Byte              32EC          13036 
-STR_LEN                          Word              32ED          13037 
-TMP                              Byte              32EF          13039 
-ARGS                             String(10) * 32   32F0          13040 
-BCOUNT                           Byte              343A          13370 
-I2                               Byte              343B          13371 
-CAN_BYTE_STR                     String * 2        343C          13372 
-CAN_ID                           Word              343F          13375 
-BYTE_POZ                         Byte              3441          13377 
-SUBSTR                           String * 256      3442          13378 
-STR_DIVIDER                      Word              3543          13635 
-KOTEL_RUN_MODE                   Byte              3545          13637 
-KOTEL_DATA_VALID_TIMER           Byte              3546          13638 
-HIGHLITE_ALM                     Byte              3547          13639 
-KOTEL_TEMP                       Single            3548          13640 
-KOTEL_TEMP_TMP                   Word              354C          13644 
-KOTEL_H_LIM                      Byte              354E          13646 
-KOTEL_DELTA                      Byte              354F          13647 
-KOTEL_T_RUN                      Byte              3550          13648 
-KOTEL_T_STOP                     Byte              3551          13649 
-CAN_AVAILABLE_TIMER              Byte              3552          13650 
-ETH_AVAILABLE_TIMER              Byte              3553          13651 
-UPS_DATA_VALID_TIMER             Byte              3554          13652 
-UPS_HIGHLITE_ALM                 Byte              3555          13653 
-TANK_DATA_VALID_TIMER            Byte              3556          13654 
-TANK_HIGHLITE_ALM                Byte              3557          13655 
-DIG_IN                           Byte              3558          13656 
-DIG_OUT                          Byte              3559          13657 
-PRESSURE                         Word              355A          13658 
-PRESSURE_LIM                     Word              355C          13660 
-PRESSURE_DELTA                   Byte              355E          13662 
-DATE$                            String * 8        3565          13669 
-TIME$                            String * 8        356E          13678 
-DEB_STR                          String * 10       3577          13687 
+RX_ID                            Word              26AC          9900 
+SPORT                            String * 128      26AE          9902 
+STR_COM                          String * 128      272F          10031 
+PEERADDRESS                      Long              27B0          10160 
+PEERPORT                         Word              27B4          10164 
+PEERSIZE                         Word              27B6          10166 
+LOCAL_PORT                       Word              27B8          10168 
+S                                String * 1024     27BB          10171 
+BUF                              Byte(1024)        27BB          10171 
+TEMPW                            Word              2BBC          11196 
+I                                Byte              2BBE          11198 
+BCMD                             Byte              2BBF          11199 
+ETH_STR                          String * 2048     2BC0          11200 
+ETH_TX_BUF                       Byte(2048)        2BC0          11200 
+KEY_POZ                          Byte              33C1          13249 
+STR_LEN                          Word              33C2          13250 
+TMP                              Byte              33C4          13252 
+ARGS                             String(10) * 32   33C5          13253 
+BCOUNT                           Byte              350F          13583 
+I2                               Byte              3510          13584 
+CAN_BYTE_STR                     String * 2        3511          13585 
+CAN_ID                           Word              3514          13588 
+BYTE_POZ                         Byte              3516          13590 
+SUBSTR                           String * 256      3517          13591 
+STR_DIVIDER                      Word              3618          13848 
+KOTEL_RUN_MODE                   Byte              361A          13850 
+KOTEL_DATA_VALID_TIMER           Byte              361B          13851 
+HIGHLITE_ALM                     Byte              361C          13852 
+KOTEL_TEMP                       Single            361D          13853 
+KOTEL_TEMP_TMP                   Word              3621          13857 
+KOTEL_H_LIM                      Byte              3623          13859 
+KOTEL_DELTA                      Byte              3624          13860 
+KOTEL_T_RUN                      Byte              3625          13861 
+KOTEL_T_STOP                     Byte              3626          13862 
+CAN_AVAILABLE_TIMER              Byte              3627          13863 
+ETH_AVAILABLE_TIMER              Byte              3628          13864 
+UPS_DATA_VALID_TIMER             Byte              3629          13865 
+UPS_HIGHLITE_ALM                 Byte              362A          13866 
+TANK_DATA_VALID_TIMER            Byte              362B          13867 
+TANK_HIGHLITE_ALM                Byte              362C          13868 
+DIG_IN                           Byte              362D          13869 
+DIG_OUT                          Byte              362E          13870 
+PRESSURE                         Word              362F          13871 
+PRESSURE_LIM                     Word              3631          13873 
+PRESSURE_DELTA                   Byte              3633          13875 
+DATE$                            String * 8        363A          13882 
+TIME$                            String * 8        3643          13891 
+DEB_STR                          String * 10       364C          13900 
 
 --------------------------------------------------------------------------------
 Constant                         Value
@@ -1527,4 +1539,4 @@ KOTEL_TEMP                       not used
 DATE$                            not used
 DEB_STR                          not used
 
-Source string could be too big to fit into target string [SPORT>SERIAL_READ]  in line  648 
+Source string could be too big to fit into target string [SPORT>SERIAL_READ]  in line  747 

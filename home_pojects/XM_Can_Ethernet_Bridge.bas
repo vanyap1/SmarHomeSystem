@@ -54,13 +54,30 @@ can_en alias portc.1 : config can_en = output : set can_en
 can_int alias pinc.2 : config can_int = input
 
 dim serialflg as bit
-Config Com5 = 115200 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
+Config Com5 = 250000 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
 Config Com7 = 115200 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
 Config Serialin = Buffered , Size = 255
 Config Serialin1 = Buffered , Size = 254   , Bytematch = all
 Config Serialin2 = Buffered , Size = 254   , Bytematch = 13
 Config Serialin3 = Buffered , Size = 254   , Bytematch = 13
 Dim S2 As String * 255 , Ns2 As Byte , Rs2 As Byte , Str_com2 As String * 200
+
+
+
+
+
+
+
+
+
+dim globalPowerRequest as byte
+'Sensor unit variables              <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+dim SensorUnit(10) As string *4, SensorUnitElements as byte
+dim thermalZones(3) as integer, lightChannel as word, adcChannel as word
+dim sensorUnitDataValid as byte , su_highlite_alm as byte
+dim sensorUnitCan(5) as byte  , tmpWord(5) as word
+dim thermalZone as byte , tempSingle as single
+
 
 declare function init_can () as byte
 declare function check_can () as byte
@@ -147,14 +164,14 @@ I2cinit
 
 Declare Sub Ethernet()
 Declare function serial_read() as string
-Dim Sport as string*128
+Dim Sport as string*128 , Str_com As String * 128
 
 Config Spic = Hard , Master = Yes , Mode = 0 , Clockdiv = Clk2 , Data_order = Msb , Ss = auto
 
 Waitms 10
-'                                                 Ip = 192.168.1.19
+'                             12.128.12.14.20.50   Ip = 192.168.1.19
 
-Config Tcpip = Noint , Mac = 12.128.12.14.20.50 , Ip = 192.168.1.19 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
+Config Tcpip = Noint , Mac = 12.128.12.14.30.50 , Ip = 192.168.1.22 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
 
 Waitms 10                                          ' long SNTP time
 'dim used variables
@@ -224,6 +241,71 @@ do
       Print #1 , "init"
    end if
 
+   if Ischarwaiting(#2) = 1 then
+      'dim SensorUnit(10) As string *5, SensorUnitElements as byte
+      'dim thermalZones(3) as integer, lightChannel as word, adcChannel as word
+      'dim sensorUnitDataValid as byte
+      Str_com = serial_read()
+      SensorUnitElements = split(Str_com , SensorUnit(1), ";")
+      if SensorUnitElements = 8 AND SensorUnit(1) = "S0" then
+         thermalZones(1) = val(SensorUnit(3))
+         thermalZones(2) = val(SensorUnit(4))
+         thermalZones(3) = val(SensorUnit(5))
+         lightChannel = val(SensorUnit(6))
+         adcChannel = val(SensorUnit(7))
+         sensorUnitDataValid = 0
+      end if
+
+      #IF debg
+         Print #1 , thermalZones(1) ; "; " ;
+         Print #1 , thermalZones(2) ; "; " ;
+         Print #1 , thermalZones(3) ; "; " ;
+         Print #1 , lightChannel ; "; "    ;
+         Print #1 , adcChannel ; "; "
+      #ENDIF
+
+
+      for thermalZone = 1 to 3
+
+          tempSingle = thermalZones(thermalZone) / 10
+
+          if thermalZone > 0 then
+            sensorUnitCan(thermalZone) = round(tempSingle)
+          else
+            sensorUnitCan(thermalZone) = 255
+          end if
+
+
+
+      next
+
+
+
+      tmpWord(1) = lightChannel
+
+      Shift tmpWord(1) , Right , 2
+      if tmpWord(1) > 255 Then : tmpWord(1) = 255 : end if
+      sensorUnitCan(4) = LOW(tmpWord(1))
+
+      tmpWord(2) = adcChannel
+      Shift tmpWord(2) , Right , 2
+      if tmpWord(2) > 255 Then : tmpWord(2) = 255 : end if
+      sensorUnitCan(5) = LOW(tmpWord(2))
+
+
+
+   end if
+
+   if su_highlite_alm = 1 then
+        sensorUnitCan(1) = 255
+        sensorUnitCan(2) = 255
+        sensorUnitCan(3) = 255
+        sensorUnitCan(4) = 255
+        sensorUnitCan(5) = 255
+   end if
+
+
+
    status = can_read(RX_ID)
 
 
@@ -269,12 +351,12 @@ do
          end if
 
          can_write_data(1) = t
-         can_write_data(2) = 0
-         can_write_data(3) = 0
-         can_write_data(4) = 0
-         can_write_data(5) = 0
-         can_write_data(6) = 0
-         can_write_data(7) = 0
+         can_write_data(2) = sensorUnitCan(1)
+         can_write_data(3) = sensorUnitCan(2)
+         can_write_data(4) = sensorUnitCan(3)
+         can_write_data(5) = sensorUnitCan(4)
+         can_write_data(6) = sensorUnitCan(5)
+         can_write_data(7) = globalPowerRequest
          can_write_data(8) = &haa
          status = can_write(&h069)
 
@@ -360,6 +442,7 @@ do
    if kotel_data_valid_timer > 10 then : highlite_alm = 1  : else : highlite_alm = 0  : end if
    if tank_data_valid_timer > 10 then : tank_highlite_alm = 1  : else : tank_highlite_alm = 0  : end if
    if ups_data_valid_timer > 10 then : ups_highlite_alm = 1  : else : ups_highlite_alm = 0  : end if
+   if sensorUnitDataValid > 10 then : su_highlite_alm = 1  : else : su_highlite_alm = 0  : end if
 
    toggle dbg_pin
    toggle heartbeat
@@ -403,21 +486,21 @@ Sub Ethernet()
                         eth_str = eth_str + "inputs="  + str(in1) + str(in2) + "<br>need to use direct socket connection"
                         eth_str = eth_str + "<table>"
                         eth_str = eth_str + "<tr><th>parameter</th><th>value</th></tr>"
-                        eth_str = eth_str + "<tr><td>Kotel_t</td><td style='text-align:center'>" + str(kotel_temp_tmp) + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Kotel_stat</td><td style='text-align:center'>" + bin(kotel_run_mode)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>kotel_h_lim</td><td style='text-align:center'>" + str(kotel_h_lim)   + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>kotel_delta</td><td style='text-align:center'>" + str(kotel_delta) + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>kotel_t_run</td><td style='text-align:center'>" + str(kotel_t_run)    + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>kotel_t_stop</td><td style='text-align:center'>" + str(kotel_t_stop)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>kotel_data_valid_timer</td><td style='text-align:center' bgcolor='" + Lookupstr(highlite_alm , highlite_color_list) + "'>" + str(kotel_data_valid_timer)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Kotel_t</td><td>" + str(kotel_temp_tmp) + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Kotel_stat</td><td>" + bin(kotel_run_mode)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>kotel_h_lim</td><td>" + str(kotel_h_lim)   + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>kotel_delta</td><td>" + str(kotel_delta) + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>kotel_t_run</td><td>" + str(kotel_t_run)    + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>kotel_t_stop</td><td>" + str(kotel_t_stop)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>kotel_data_valid_timer</td><td bgcolor='" + Lookupstr(highlite_alm , highlite_color_list) + "'>" + str(kotel_data_valid_timer)  + "</td></tr>"
 
-                        eth_str = eth_str + "<tr><td>Dig outputs</td><td style='text-align:center'>" + str(dig_in)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Dig inputs</td><td style='text-align:center'>" + str(dig_out)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Pressure</td><td style='text-align:center'>" + str(pressure)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Pressure lim</td><td style='text-align:center'>" + str(pressure_lim)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>delta</td><td style='text-align:center'>" + str(pressure_delta)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Dig outputs</td><td>" + str(dig_in)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Dig inputs</td><td>" + str(dig_out)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Pressure</td><td>" + str(pressure)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Pressure lim</td><td>" + str(pressure_lim)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>delta</td><td>" + str(pressure_delta)  + "</td></tr>"
 
-                        eth_str = eth_str + "<tr><td>Tank_data_valid_timer</td><td style='text-align:center' bgcolor='" + Lookupstr(tank_highlite_alm , highlite_color_list) + "'>" + str(tank_data_valid_timer)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Tank_data_valid_timer</td><td bgcolor='" + Lookupstr(tank_highlite_alm , highlite_color_list) + "'>" + str(tank_data_valid_timer)  + "</td></tr>"
                         'const bat_voltage_const = 0
                         'const bat_current_const = 1
                         'const bat_capacity_const = 2
@@ -425,14 +508,23 @@ Sub Ethernet()
                         'const pump_status_const = 4
                         'const pump_current_const = 5
                         'const current_pow_source = 6
-                        eth_str = eth_str + "<tr><td>BAT_voltage</td><td style='text-align:center'>" + read_parameter(bat_voltage_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Bat_current</td><td style='text-align:center'>" + read_parameter(bat_current_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Bat_capacity</td><td style='text-align:center'>" + read_parameter(bat_capacity_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Bat_available</td><td style='text-align:center'>" + read_parameter(bat_available_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Pump_status</td><td style='text-align:center'>" + read_parameter(pump_status_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Pump_current</td><td style='text-align:center'>" + read_parameter(pump_current_const)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>Powered from</td><td style='text-align:center'>" + read_parameter(current_pow_source)  + "</td></tr>"
-                        eth_str = eth_str + "<tr><td>dalas</td><td style='text-align:center'>" + str(t_w)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>BAT_voltage</td><td>" + read_parameter(bat_voltage_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Bat_current</td><td>" + read_parameter(bat_current_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Bat_capacity</td><td>" + read_parameter(bat_capacity_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Bat_available</td><td>" + read_parameter(bat_available_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Pump_status</td><td>" + read_parameter(pump_status_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Pump_current</td><td>" + read_parameter(pump_current_const)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>Powered from</td><td>" + read_parameter(current_pow_source)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>dalas</td><td>" + str(t_w)  + "</td></tr>"
+
+                        eth_str = eth_str + "<tr><td>sensorUnitDataValid</td><td bgcolor='" + Lookupstr(su_highlite_alm , highlite_color_list) + "'>" + str(sensorUnitDataValid)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>tZone1</td><td>" + str(thermalZones(1))  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>tZone2</td><td>" + str(thermalZones(2))  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>tZone3</td><td>" + str(thermalZones(3))  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>sLight</td><td>" + str(lightChannel)  + "</td></tr>"
+                        eth_str = eth_str + "<tr><td>adcCH5</td><td>" + str(adcChannel)  + "</td></tr>"
+
+
                         eth_str = eth_str + "</table></body></html>{013}{010}"
                         str_len = len(eth_str)
                         S = "Content-Length: " + Str(str_len) + "{013}{010}"
@@ -552,6 +644,13 @@ Sub Ethernet()
                         eth_str = eth_str  + read_parameter(pump_current_const) + ";"
                         eth_str = eth_str  + read_parameter(current_pow_source) + ";"
                         eth_str = eth_str  + str(t_w) + ";"
+                        'added sensor unit
+                        eth_str = eth_str  + str(thermalZones(1)) + ";"
+                        eth_str = eth_str  + str(thermalZones(1)) + ";"
+                        eth_str = eth_str  + str(thermalZones(1)) + ";"
+                        eth_str = eth_str  + str(lightChannel) + ";"
+                        eth_str = eth_str  + str(adcChannel) + ";"
+
                         eth_str = eth_str  +"{013}{010}"
                         Tempw = Tcpwritestr(i , eth_str , 0)
                      end if
@@ -633,7 +732,7 @@ Sectic:
    if eth_available_timer < 255 then : incr eth_available_timer : end if
    if can_available_timer < 255 then : incr can_available_timer : end if
    if ups_data_valid_timer < 255 then : incr ups_data_valid_timer : end if
-
+   if sensorUnitDataValid < 255 then : incr sensorUnitDataValid : end if
 
    t_request = 1
    toggle t_action.0

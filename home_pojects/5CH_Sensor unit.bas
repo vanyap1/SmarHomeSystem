@@ -11,7 +11,7 @@ $swstack = 256
 $framesize = 256
 $baud = 9600 '
 '$baud = 38400
-$version 2 , 1 , 28
+$version 2 , 1 , 31
 
 
 Config Watchdog = 2048
@@ -72,7 +72,7 @@ run_led alias portd.7 : config run_led = output : reset run_led
 tx_en alias portd.5 : config tx_en = output : reset tx_en
 
 
-Config Com1 = 115200 , Synchrone = 0 , Parity = None , Stopbits = 1 , Databits = 8 , Clockpol = 0
+Config Com1 = 250000 , Synchrone = 0 , Parity = None , Stopbits = 1 , Databits = 8 , Clockpol = 0
 
 
 Dim S1 As String * 100 , Str_com1 As String * 100

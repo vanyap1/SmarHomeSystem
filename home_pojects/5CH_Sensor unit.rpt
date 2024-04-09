@@ -1,6 +1,6 @@
 Report       : 5CH_Sensor unit
 Date         : 04-09-2024
-Time         : 22:44:10
+Time         : 23:20:50
 
 Compiler     : BASCOM-AVR LIBRARY V 2.0.8.1
 Processor    : M328
@@ -1289,7 +1289,7 @@ _XMEGA                           0
 LOADERCHIP                       328
 _VERSION_MAJOR                   2
 _VERSION_MINOR                   1
-_VERSION_BUILD                   28
+_VERSION_BUILD                   31
 DEBG                             0
 TIMER1PRE                        40536
 CBITINFINITY                     0
