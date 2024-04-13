@@ -171,7 +171,7 @@ Config Spic = Hard , Master = Yes , Mode = 0 , Clockdiv = Clk2 , Data_order = Ms
 Waitms 10
 '                             12.128.12.14.20.50   Ip = 192.168.1.19
 
-Config Tcpip = Noint , Mac = 12.128.12.14.30.50 , Ip = 192.168.1.22 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
+Config Tcpip = Noint , Mac = 12.128.12.14.20.50 , Ip = 192.168.1.19 , Submask = 255.255.255.0 , Gateway = 192.168.1.1 , Localport = 80 , Chip = W5500 , Spi = Spic , Cs = Portc.4
 
 Waitms 10                                          ' long SNTP time
 'dim used variables
@@ -306,12 +306,6 @@ do
 
 
 
-   status = can_read(RX_ID)
-
-
-
-
-
 
 
 
@@ -366,14 +360,14 @@ do
    end if
 
 
-
+   status = can_read(RX_ID)
    if status > 0 then
 
       can_available_timer = 0
       can_led_timer = 250
-      '#IF debg
-      Print #1 , hex(RX_ID) ; "-"  ; hex(can_read_data(1)) ; ";" ; hex(can_read_data(2)) ; ";" ; hex(can_read_data(3)) ; ";" ; hex(can_read_data(4)) ; ";" ; hex(can_read_data(5)) ; ";" ; hex(can_read_data(6)) ; ";" ; hex(can_read_data(7)) ; ";" ;  hex(can_read_data(8))
-      '#ENDIF
+      #IF debg
+         Print #1 , hex(RX_ID) ; "-"  ; hex(can_read_data(1)) ; ";" ; hex(can_read_data(2)) ; ";" ; hex(can_read_data(3)) ; ";" ; hex(can_read_data(4)) ; ";" ; hex(can_read_data(5)) ; ";" ; hex(can_read_data(6)) ; ";" ; hex(can_read_data(7)) ; ";" ;  hex(can_read_data(8))
+      #ENDIF
     'dim kotel_run_mode as byte
     'dim kotel_temp as single  , kotel_temp_tmp as word
     'dim kotel_h_lim as byte , kotel_delta as byte , kotel_t_run as byte  , kotel_t_stop as byte
@@ -439,10 +433,10 @@ do
    end if
 
    if can_led_timer > 0 then : decr can_led_timer : set can_act : else : reset can_act : end if
-   if kotel_data_valid_timer > 10 then : highlite_alm = 1  : else : highlite_alm = 0  : end if
-   if tank_data_valid_timer > 10 then : tank_highlite_alm = 1  : else : tank_highlite_alm = 0  : end if
-   if ups_data_valid_timer > 10 then : ups_highlite_alm = 1  : else : ups_highlite_alm = 0  : end if
-   if sensorUnitDataValid > 10 then : su_highlite_alm = 1  : else : su_highlite_alm = 0  : end if
+   if kotel_data_valid_timer > 40 then : highlite_alm = 1  : else : highlite_alm = 0  : end if
+   if tank_data_valid_timer > 40 then : tank_highlite_alm = 1  : else : tank_highlite_alm = 0  : end if
+   if ups_data_valid_timer > 40 then : ups_highlite_alm = 1  : else : ups_highlite_alm = 0  : end if
+   if sensorUnitDataValid > 40 then : su_highlite_alm = 1  : else : su_highlite_alm = 0  : end if
 
    toggle dbg_pin
    toggle heartbeat
@@ -646,8 +640,8 @@ Sub Ethernet()
                         eth_str = eth_str  + str(t_w) + ";"
                         'added sensor unit
                         eth_str = eth_str  + str(thermalZones(1)) + ";"
-                        eth_str = eth_str  + str(thermalZones(1)) + ";"
-                        eth_str = eth_str  + str(thermalZones(1)) + ";"
+                        eth_str = eth_str  + str(thermalZones(2)) + ";"
+                        eth_str = eth_str  + str(thermalZones(3)) + ";"
                         eth_str = eth_str  + str(lightChannel) + ";"
                         eth_str = eth_str  + str(adcChannel) + ";"
 

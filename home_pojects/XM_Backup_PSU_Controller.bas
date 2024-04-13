@@ -51,11 +51,6 @@ Config Adca = Single , Convmode = Unsigned , Resolution = 8bit , Dma = Off , Ref
 Ch0_gain = 1 , Ch0_inp = Single_ended , Mux0 = 0 'you can setup other channels as well
 
 
-
-
-
-
-
 declare function init_can () as byte
 declare function check_can () as byte
 declare function start_can () as byte
@@ -72,15 +67,9 @@ declare sub read_voltage()
 declare sub read_current()
 declare sub read_shunt()
 declare sub read_power()
-
 declare sub adc_conversion_start(byval ch as byte)
 declare sub adc_data_read(byval ch as byte)
-
-
 declare sub set_pump(byval run as byte)
-
-
-
 
 Const Ads1115_write = &H90
 Const Ads1115_read = &H91
@@ -88,10 +77,6 @@ Const Ads1115_read = &H91
 Dim adc_data As Word
 Dim ADC_l_byte As Byte At adc_data Overlay
 Dim ADC_h_byte As Byte At ADC_l_byte + 1 Overlay
-
-
-
-
 
 dim load_ctrl as byte , power_good as byte , pg as byte
 
@@ -128,10 +113,6 @@ const CFG1x80kbps = &h01 : const CFG2x80kbps = &hbf : const CFG3x80kbps = &h87
 const CFG1x50kbps = &h03 : const CFG2x50kbps = &hb4 : const CFG3x50kbps = &hb6
 dim data_wr_req as byte
 dim adc_read_req as byte
-
-
-
-
 
 '_____________________________________________________________________________________KOTEL
 dim kotel_run_mode as byte , kotel_data_valid_timer as byte , highlite_alm as byte
@@ -188,9 +169,6 @@ Enable Tcc0_ovf , Lo
 'Time$ = "14:40:00"
 
 
-
-
-
 dim config_reg as integer, power_conversion_req  as byte , power_conversion_divider as byte
 Dim config_l As Byte At config_reg Overlay
 Dim config_h As Byte At config_reg + 1 Overlay
@@ -233,26 +211,31 @@ Dim bat_energy_long_2 As Byte At bat_energy_long + 2 Overlay
 Dim bat_energy_long_3 As Byte At bat_energy_long + 3 Overlay
 dim BatEnergyLcd as single
 
-
-
-
-Dim can_bat_voltage as byte
+Dim can_bat_voltage(2) as byte
 
 dim can_bat_current as integer
 Dim can_bat_current_0 As Byte At can_bat_current Overlay
 Dim can_bat_current_1 As Byte At can_bat_current + 1 Overlay
-
-
-
-
-
 
 dim ld_green as byte , ld_yellow as byte, ld_red as byte
 dim alarms as byte
 dim lcd_line1 as string *32 , lcd_line2 as string *32 , tmp_str as string *16
 dim tmp_sin as single
 dim pump_error_counter as byte , pump_current_state as byte
-dim sys_flags as byte , msg_flg as bit
+dim sys_flags as byte , msg_flg as byte
+
+
+dim protectRunTime as byte , runTypeFrom as byte , helperCounter as byte
+
+'Solar water heater related variables <<<<<<<<<<<<<<<<<<<<<
+dim solarModuleTemp as byte
+protectRunTime = 5
+
+
+
+
+
+
 
 power_source alias sys_flags.0
 pump_ok alias sys_flags.1
@@ -289,18 +272,6 @@ config_reg = config_reg + run_mode
 power_conversion_req = 0
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 status =  init_can()
 waitms 20
 status =  start_can()
@@ -310,21 +281,6 @@ Config Priority = Static , Vector = Application , Lo = Enabled       ' the RTC u
 Enable Interrupts
 Start Watchdog
 
-
-'reset can_act
-'reset can_err
-
-
-
-      'can_write_data(1) = 0
-      'can_write_data(2) = &hff
-      'can_write_data(3) = &hff
-      'can_write_data(4) = &hff
-      'can_write_data(5) = &hff
-      'can_write_data(6) = &hff
-      'can_write_data(7) = &hff
-      'can_write_data(8) = &hff
-      'status = can_write(&h248)
 
 I2cstart
 I2cwbyte &h80
@@ -368,34 +324,6 @@ do
    if adc_read_req > 0 then
       adc_read_req = 0  ''>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       bld = 0   'blue led
-   'print #1 , readADC(0) ; "; " ; readADC(1) ; "; " ;readADC(2) ; "; " ;readADC(3)  ; "; "
-
-
-
-
-
-
-'      load_ctrl = Getadc(adca , 0 , &B0_0000_111)
-
-'      'print #1 , " AC_det:" ; ac_det ; " PG:" ; pg  ; " kotel_t=" ; kotel_temp_tmp   ; "  dat_val=" ; kotel_data_valid_timer  ; " mode:" ; bin(kotel_run_mode)
-
-'      if rf_wr_flg > 5 then
-'         '''''print #1 ,  "s;" ; pg ; ";" ;  kotel_temp_tmp ; ";" ; hex(kotel_run_mode) ; ";" ; sys_voltage ;";"; bat_current;";"; pump_current;";" ;gateway_data_valid_timer; ";" ;dalas_temp ; ";" ; real_t; ";" ; delta_t; ";e"
-'         rf_wr_flg = 0
-'         kotel_status = kotel_run_mode
-'         kotel_status.5 = 0
-'         kotel_status.6 = 0
-'         kotel_status.7 = 0
-
-'      else
-'         incr rf_wr_flg
-'      end if
-
-
-
-
-
-
       if ac_det = 0 then
          if pg > 0 then : decr pg : end if
       else
@@ -404,73 +332,6 @@ do
       bld = 1    'blue led
       if pg = 10 then : power_source = 1 : end if
       if pg = 0 then : power_source = 0 : end if
-
-
-'      if kotel_data_valid_timer < 10 then  '
-'         if dalas_temp > real_t then
-'            delta_t = dalas_temp - real_t
-'         else
-'            delta_t = 0 :
-'         end if
-
-'         if pg > 5 then             'If powered from line
-'               'обробка сценарія коли нема 220В
-
-
-'            if reset_pump_flg = 1 then   'один сигнал що пропало живлення
-'               reset_pump_flg = 3
-'               reset ac_sel              'скинути попередній стан помпи
-'            end if
-
-
-'            if delta_t > 5 then  'якщо газовий котел включено, виключити регулювання
-'               set ac_sel
-'               reset pump_off    'якщо газовий котел ВИКЛ - економимо електрику
-'            else
-
-
-'               if kotel_status = 1 then  'якщо розпалюєся котел - зменшити ліміти температури для ВКЛ
-'                  run_pump_hi = 3300
-'                  run_pump_lo = 1000
-'               else
-'                  run_pump_hi = 6500
-'                  run_pump_lo = 5000
-'               end if
-
-'               if kotel_temp_tmp > run_pump_hi then : set ac_sel : reset pump_off : end if
-'               if kotel_temp_tmp < run_pump_lo then : reset ac_sel : set pump_off : end if
-
-'            end if
-
-
-
-
-
-'         else
-'               'якщо є живлення - управляю по температурі
-'            set ac_sel
-'            if kotel_status = 1 then  ' Чи розпалюєся котел
-'               reset pump_off
-'            else
-'               if kotel_temp_tmp > 3300 or dalas_temp > 33 then : reset pump_off : end if
-'                  'якщо температура одного з котлів виросла
-'               if kotel_temp_tmp < 3000 and dalas_temp < 30 then : set pump_off : end if
-'                  'якщо температура обох котлів впала
-'            end if
-'            'print #1 ,"AC OK"
-
-'         end if
-
-
-'      else
-'         'print #1 ,"CAN ERROR"
-'         set ac_sel
-'         reset pump_off
-'      end if
-
-          ''<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
    end if
 
 
@@ -497,44 +358,20 @@ do
 
       if RX_ID = &h69 then
          dalas_temp = can_read_data(1)
+         solarModuleTemp = can_read_data(4)
          gateway_data_valid_timer = 0
       end if
 
 
-      'Print #1 , hex(RX_ID) ; "-"  ; hex(can_read_data(1)) ; ";" ; hex(can_read_data(2)) ; ";" ; hex(can_read_data(3)) ; ";" ; hex(can_read_data(4)) ; ";" ; hex(can_read_data(5)) ; ";" ; hex(can_read_data(6)) ; ";" ; hex(can_read_data(7)) ; ";" ;  hex(can_read_data(8))
-       'reset bld
-   else
-       'set bld
+      if RX_ID = &h48 then
+         protectRunTime = can_read_data(1)
+         'solarModuleTemp = can_read_data(4)
+         'gateway_data_valid_timer = 0
+      end if
+
    end if
 
 
-
-
-
-    'if pg = 5 then
-    '    set inv_en
-    'else
-    '    reset inv_en
-    'end if
-    '
-    'if pg = 10 then
-    '    set ac_sel
-    'else
-    '    reset ac_sel
-    'end if
-
-
-   'if  power_good = 0 then :
-   '   reset ac_sel
-   '   reset inv_en
-   'else
-   '   set ac_sel
-   '   set inv_en
-   'end if
-
-
-
-   'rld = ac_det
    if power_conversion_req = 1 then
       load_ctrl = Getadc(adca , 0 , &B0_0000_111)
       read_voltage
@@ -543,41 +380,25 @@ do
       read_power
       calc_power = int_voltage  * int_current
       calc_power = calc_power / 1000
-      'power_calculator = PowerReg / 40
-
-      'calc_bat_energy = calc_bat_energy + int_current
       momental_current = int_current / 3600
       batenergy = batenergy +  momental_current
       if batenergy > 100000 then :  batenergy = 100000 : end if
 
 
-      'print #1 , "V "; int_voltage ; "; C " ; int_current ; "; E: " ; batenergy ; ";";
-      'print #1 , " AC_det:" ; ac_det ; "; ";
-      'print #1 , " Load:" ; load_ctrl ; "; ";
-      'print #1 , " PG:" ; pg ; "; ";
 
-      'power_source alias sys_flags.0
-'      pump_ok alias sys_flags.1
-'      kotel_error alias sys_flags.2
-'      gateway_error alias sys_flags.3
-'      low_battery alias sys_flags.4
-'      overload alias sys_flags.5
-
-
-       'real_t     < from kotel thermometer
-       'dalas_temp < from pump thermometer
-       'kotel_data_valid_timer
-       'gateway_data_valid_timer
-
-
-
-      if kotel_data_valid_timer > 20 or gateway_data_valid_timer > 20 then
+      if kotel_data_valid_timer > 40 or gateway_data_valid_timer > 40 then
          alarms.0 = 1
       else
          alarms.0 = 0
       end if
 
+      if solarModuleTemp => 50 then : runTypeFrom.3 = 1 : protectRunTime = 60 : end if
+      if solarModuleTemp < 40 then : runTypeFrom.3 = 0 : end if
 
+      if real_t => 35 or dalas_temp => 35 then : runTypeFrom.2 = 1 : protectRunTime = 60 : end if
+      if real_t < 30 and dalas_temp < 35 then : runTypeFrom.2 = 0 : end if
+
+      if kotel_run_mode > 0 then : runTypeFrom.1 = 1: else :runTypeFrom.1 = 0: end if
 
 
       if alarms > 0 then
@@ -585,7 +406,11 @@ do
          set_pump(1)
       else
          ld_red = 0
-         if kotel_run_mode > 0 or real_t > 35 or dalas_temp > 35 then
+         'if kotel_run_mode > 0 or real_t > 35 or dalas_temp > 35 then
+
+         if runTypeFrom > 0 or protectRunTime > 0 then
+
+
             set_pump(1)
          else
             set_pump(0)
@@ -608,18 +433,13 @@ do
       BatEnergyLcd = BatEnergy / 1000
       tmp_str = fusing(BatEnergyLcd , "0.0") + "Ah    "
       lcd_line1 = lcd_line1 + tmp_str
-
-
       bat_energy_long = int(batenergy)
-      'fusing(batenergy , "0.0")
-
-
-
       tmp_sin = int_voltage/100
-      can_bat_voltage = int(tmp_sin)
+      can_bat_voltage(2) = can_bat_voltage(1)
+      can_bat_voltage(1) = int(tmp_sin)
       can_bat_current = int_current
 
-      if load_ctrl < 40 and pump_current_state = 1 then
+      if load_ctrl < 30 and pump_current_state = 1 then
          if pump_error_counter < 10 then
             incr pump_error_counter
          end if
@@ -627,70 +447,47 @@ do
       else : pump_error_counter = 0 : end if
 
 
-      if pump_error_counter > 5 then : pump_ok = 1 : alarms.1 = 1: else : pump_ok = 0 :alarms.1 = 0 : end if
+      if pump_error_counter > 10 then : pump_ok = 1 : alarms.1 = 1: else : pump_ok = 0 :alarms.1 = 0 : end if
 
       if pump_current_state = 1 then : ld_yellow = 1 : else : ld_yellow = 0 : end if
+                                                                                                        'load_ctrl  solarModuleTemp
 
-
-      lcd_line2 = "Tk:" + str(real_t) + " Tp:" + str(dalas_temp) + "  "
+      lcd_line2 = "Tk:" + str(real_t) + " Tp:" + str(dalas_temp) + " Sc:" + str(solarModuleTemp) + " "
 
       print #1 , lcd_line1 ;"/"; lcd_line2 ; "/"; ld_red ; "/" ; ld_green ; "/"; ld_yellow ; "/"
-
-
-
-
-
-      'print #1 , " AC_det:" ; ac_det ;
-      'print #1 , str(calc_bat_energy)
       power_conversion_req = 0
       PowerMeasDelay = 3
 
 
+      select case msg_flg
+         Case 0 : incr msg_flg
+            if can_bat_voltage(1) > 90 Then
+               can_write_data(1) = can_bat_voltage(1)
+            else
+               can_write_data(1) = can_bat_voltage(2)
+            end if
+            can_write_data(2) = can_bat_current_1
+            can_write_data(3) = can_bat_current_0
+            can_write_data(4) = bat_energy_long_3
+            can_write_data(5) = bat_energy_long_2
+            can_write_data(6) = bat_energy_long_1
+            can_write_data(7) = bat_energy_long_0
+            can_write_data(8) = sys_flags
+            status = can_write(&h033)
+         Case 1 : incr msg_flg
+            can_write_data(1) = load_ctrl
+            can_write_data(2) = 0       'reserved
+            can_write_data(3) = 0       'reserved
+            can_write_data(4) = 0       'reserved
+            can_write_data(5) = 0       'reserved
+            can_write_data(6) = 0       'reserved
+            can_write_data(7) = 0       'reserved
+            can_write_data(8) = sys_flags
+            status = can_write(&h043)
+         Case 2 : incr msg_flg
 
-
-
-
-
-
-
-
-
-
-
-      if msg_flg = 0 then
-
-         can_write_data(1) = can_bat_voltage
-         can_write_data(2) = can_bat_current_1
-         can_write_data(3) = can_bat_current_0
-         can_write_data(4) = bat_energy_long_3
-         can_write_data(5) = bat_energy_long_2
-         can_write_data(6) = bat_energy_long_1
-         can_write_data(7) = bat_energy_long_0
-         can_write_data(8) = sys_flags
-         status = can_write(&h033)
-      else
-
-         can_write_data(1) = load_ctrl
-         can_write_data(2) = 0       'reserved
-         can_write_data(3) = 0       'reserved
-         can_write_data(4) = 0       'reserved
-         can_write_data(5) = 0       'reserved
-         can_write_data(6) = 0       'reserved
-         can_write_data(7) = 0       'reserved
-         can_write_data(8) = sys_flags
-         status = can_write(&h043)
-      end if
-
-
-      toggle msg_flg
-
-
-
-
-
-
-
-
+         Case is >= 3 : msg_flg = 0
+      end select
 
 
    end if
@@ -704,11 +501,11 @@ Tc0_isr:
    adc_read_req = 1
    if kotel_data_valid_timer < 255 then : incr kotel_data_valid_timer : end if
    if gateway_data_valid_timer < 255 then : incr gateway_data_valid_timer : end if
-
+   if protectRunTime > 0 and helperCounter = 5 then : decr protectRunTime : helperCounter = 0 : end if
 
 
    incr power_conversion_divider
-
+   incr helperCounter
    if power_conversion_divider > PowerMeasDelay then : power_conversion_req = 1 : power_conversion_divider = 0 : end if
 
    toggle pe5
@@ -734,6 +531,9 @@ Sectic:
    'if can_available_timer < 255 then : incr can_available_timer : end if
    't_request = 1
    'toggle t_action.0
+
+
+
 
    toggle gld
 Return
