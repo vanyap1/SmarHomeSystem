@@ -1,6 +1,6 @@
-Report       : XM_Backup_PSU_Controller
-Date         : 10-02-2024
-Time         : 18:17:37
+Report       : XM_MasterBatteryCanGateway
+Date         : 08-27-2024
+Time         : 20:34:34
 
 Compiler     : BASCOM-AVR LIBRARY V 2.0.8.1
 Processor    : XM256A3BU
@@ -8,9 +8,9 @@ SRAM         : 4000 hex
 EEPROM       : 1000 hex
 ROMSIZE      : 42000 hex
 
-ROMIMAGE     : 3426 hex  -> Will fit into ROM
-ROMIMAGE     :  13350 dec
-FLASH USED   :  4  %
+ROMIMAGE     : 1756 hex  -> Will fit into ROM
+ROMIMAGE     :  5974 dec
+FLASH USED   :  2  %
 UART5        :   0.01 % ERROR
 UART7        :   0.01 % ERROR
 XTAL         : 32000000 Hz
@@ -21,7 +21,7 @@ S-Stacksize  : 200 hex
 S-Stackstart : 5E00 hex
 Framesize    : 200 hex
 Framestart   : 5A00 hex
-Space left   :  14523  dec
+Space left   :  14733  dec
 
 LCD DB7      : PORTB.7
 LCD DB6      : PORTB.6
@@ -230,117 +230,19 @@ R29                                                001D          29
 R30                                                001E          30 
 R31                                                001F          31 
 ERR                              Bit [2]           0006          6 
-ADC_DATA                         Word              2000          8192 
-ADC_L_BYTE                       Byte              2000          8192 
-ADC_H_BYTE                       Byte              2001          8193 
-LOAD_CTRL                        Byte              202B          8235 
-POWER_GOOD                       Byte              202C          8236 
-PG                               Byte              202D          8237 
-ADC_CH                           Integer(4)        202E          8238 
-ADC_DATA_READY                   Byte              2036          8246 
-ADC_AUTOMAT                      Byte              2037          8247 
-CAN_OUTPUT_BUFFER                Byte(16)          2038          8248 
-CAN_INPUT_BUFFER                 Byte(16)          2048          8264 
-CAN_WRITE_DATA                   Byte(10)          2058          8280 
-CAN_READ_DATA                    Byte(10)          2062          8290 
-CAN_READ_DATA2                   Byte(10)          206C          8300 
-STATUS                           Byte              2076          8310 
-WR_REQ                           Byte              2077          8311 
-RD_REQ                           Byte              2078          8312 
-B_COUNT                          Word              2079          8313 
-CAN_READ_REQUEST                 Bit [7]           207B          8315 
-RX_ID                            Word              207C          8316 
-DATA_WR_REQ                      Byte              207E          8318 
-ADC_READ_REQ                     Byte              207F          8319 
-KOTEL_RUN_MODE                   Byte              2080          8320 
-KOTEL_DATA_VALID_TIMER           Byte              2081          8321 
-HIGHLITE_ALM                     Byte              2082          8322 
-KOTEL_TEMP                       Single            2083          8323 
-KOTEL_TEMP_TMP                   Word              2087          8327 
-KOTEL_H_LIM                      Byte              2089          8329 
-KOTEL_DELTA                      Byte              208A          8330 
-KOTEL_T_RUN                      Byte              208B          8331 
-KOTEL_T_STOP                     Byte              208C          8332 
-RESET_PUMP_FLG                   Byte              208D          8333 
-KOTEL_STATUS                     Byte              208E          8334 
-RUN_PUMP_LO                      Word              208F          8335 
-RUN_PUMP_HI                      Word              2091          8337 
-RF_WR_FLG                        Byte              2093          8339 
-SYS_VOLTAGE                      Word              2094          8340 
-TMP_SINGLE                       Single            2096          8342 
-V_SYS_L_BYTE                     Byte              2094          8340 
-V_SYS_H_BYTE                     Byte              2095          8341 
-BAT_CURRENT                      Integer           209A          8346 
-BAT_CURR_L_BYTE                  Byte              209A          8346 
-BAT_CURR_H_BYTE                  Byte              209B          8347 
-PUMP_CURRENT                     Word              209C          8348 
-PUMP_CURRENT_L_BYTE              Byte              209C          8348 
-PUMP_CURRENT_H_BYTE              Byte              209D          8349 
-DALAS_TEMP                       Byte              209E          8350 
-GATEWAY_DATA_VALID_TIMER         Byte              209F          8351 
-DELTA_T                          Byte              20A0          8352 
-REAL_T_DOT                       Single            20A1          8353 
-REAL_T                           Byte              20A5          8357 
-CONFIG_REG                       Integer           20A6          8358 
-POWER_CONVERSION_REQ             Byte              20A8          8360 
-POWER_CONVERSION_DIVIDER         Byte              20A9          8361 
-CONFIG_L                         Byte              20A6          8358 
-CONFIG_H                         Byte              20A7          8359 
-SHUNTREG                         Integer           20AA          8362 
-SHUNTREG_L                       Byte              20AA          8362 
-SHUNTREG_H                       Byte              20AB          8363 
-VOLTAGEREG                       Integer           20AC          8364 
-VOLTAGEREG_L                     Byte              20AC          8364 
-VOLTAGEREG_H                     Byte              20AD          8365 
-CALLIBRATIONREG                  Word              20AE          8366 
-CALLIBRATIONREG_L                Byte              20AE          8366 
-CALLIBRATIONREG_H                Byte              20AF          8367 
-CURRENTREG                       Integer           20B0          8368 
-CURRENTREG_L                     Byte              20B0          8368 
-CURRENTREG_H                     Byte              20B1          8369 
-POWERREG                         Integer           20B2          8370 
-POWERREG_L                       Byte              20B2          8370 
-POWERREG_H                       Byte              20B3          8371 
-POWER_CALCULATOR                 Single            20B4          8372 
-CALC_POWER                       Long              20B8          8376 
-BATENERGY                        Single            20BC          8380 
-CALC_BAT_ENERGY                  Single            20C0          8384 
-MOMENTAL_CURRENT                 Single            20C4          8388 
-BATENERGY_0                      Byte              20BC          8380 
-BATENERGY_1                      Byte              20BD          8381 
-BATENERGY_2                      Byte              20BE          8382 
-BATENERGY_3                      Byte              20BF          8383 
-POWERMEASDELAY                   Byte              20C8          8392 
-BAT_ENERGY_LONG                  Long              20C9          8393 
-BAT_ENERGY_LONG_0                Byte              20C9          8393 
-BAT_ENERGY_LONG_1                Byte              20CA          8394 
-BAT_ENERGY_LONG_2                Byte              20CB          8395 
-BAT_ENERGY_LONG_3                Byte              20CC          8396 
-BATENERGYLCD                     Single            20CD          8397 
-CAN_BAT_VOLTAGE                  Byte(2)           20D1          8401 
-CAN_BAT_CURRENT                  Integer           20D3          8403 
-CAN_BAT_CURRENT_0                Byte              20D3          8403 
-CAN_BAT_CURRENT_1                Byte              20D4          8404 
-LD_GREEN                         Byte              20D5          8405 
-LD_YELLOW                        Byte              20D6          8406 
-LD_RED                           Byte              20D7          8407 
-ALARMS                           Byte              20D8          8408 
-LCD_LINE1                        String * 32       20D9          8409 
-LCD_LINE2                        String * 32       20FA          8442 
-TMP_STR                          String * 16       211B          8475 
-TMP_SIN                          Single            212C          8492 
-PUMP_ERROR_COUNTER               Byte              2130          8496 
-PUMP_CURRENT_STATE               Byte              2131          8497 
-SYS_FLAGS                        Byte              2132          8498 
-MSG_FLG                          Byte              2133          8499 
-PROTECTRUNTIME                   Byte              2134          8500 
-RUNTYPEFROM                      Byte              2135          8501 
-HELPERCOUNTER                    Byte              2136          8502 
-SOLARMODULETEMP                  Byte              2137          8503 
-REAL_VOLTAGE                     Single            2138          8504 
-INT_VOLTAGE                      Integer           213C          8508 
-REAL_CURRENT                     Single            213E          8510 
-INT_CURRENT                      Integer           2142          8514 
+CAN_OUTPUT_BUFFER                Byte(16)          2000          8192 
+CAN_INPUT_BUFFER                 Byte(16)          2039          8249 
+CAN_WRITE_DATA                   Byte(10)          2049          8265 
+CAN_READ_DATA                    Byte(10)          2053          8275 
+CAN_READ_DATA2                   Byte(10)          205D          8285 
+STATUS                           Byte              2067          8295 
+WR_REQ                           Byte              2068          8296 
+RD_REQ                           Byte              2069          8297 
+B_COUNT                          Word              206A          8298 
+CAN_READ_REQUEST                 Bit [7]           206C          8300 
+RX_ID                            Word              206D          8301 
+GATEWAY_DATA_VALID_TIMER         Byte              206F          8303 
+SOCVALUE                         Word              2070          8304 
 
 --------------------------------------------------------------------------------
 Constant                         Value
@@ -1370,8 +1272,6 @@ _SWSTACK_LOW                     &H5C00
 _FRAME_HIGH                      &H5C01
 _XMEGA                           1
 DEBG                             0
-ADS1115_WRITE                    &H90
-ADS1115_READ                     &H91
 CFG1X1000KBPS                    &H00
 CFG2X1000KBPS                    &H80
 CFG3X1000KBPS                    &H80
@@ -1397,14 +1297,6 @@ CFG1X50KBPS                      &H03
 CFG2X50KBPS                      &HB4
 CFG3X50KBPS                      &HB6
 TIMER_OVERLOAD_VALUE             7960
-RESET_BIT                        0
-AVG                              &B100
-VBUSCT                           &B110
-VSHCT                            &B110
-RUN_MODE                         &B111
-_SDA                             0
-_SCL                             1
-___I2CDELAY                      10
 CBITINFINITY                     0
 CMBITINFINITY                    1
 CBITZERO                         1
@@ -1437,36 +1329,10 @@ DMA_CH3_DESTADDR                 not used
 RTC32_CNT                        not used
 RTC32_PER                        not used
 RTC32_COMP                       not used
-POWER_GOOD                       not used
 CAN_READ_DATA2                   not used
 WR_REQ                           not used
 RD_REQ                           not used
 B_COUNT                          not used
 CAN_READ_REQUEST                 not used
-HIGHLITE_ALM                     not used
-KOTEL_TEMP                       not used
-KOTEL_H_LIM                      not used
-KOTEL_DELTA                      not used
-KOTEL_T_RUN                      not used
-KOTEL_T_STOP                     not used
-RESET_PUMP_FLG                   not used
-KOTEL_STATUS                     not used
-RF_WR_FLG                        not used
-SYS_VOLTAGE                      not used
-TMP_SINGLE                       not used
-V_SYS_L_BYTE                     not used
-V_SYS_H_BYTE                     not used
-BAT_CURRENT                      not used
-BAT_CURR_L_BYTE                  not used
-BAT_CURR_H_BYTE                  not used
-PUMP_CURRENT                     not used
-PUMP_CURRENT_L_BYTE              not used
-PUMP_CURRENT_H_BYTE              not used
-DELTA_T                          not used
-SHUNTREG                         not used
-CALC_BAT_ENERGY                  not used
-BATENERGY_0                      not used
-BATENERGY_1                      not used
-BATENERGY_2                      not used
-BATENERGY_3                      not used
+SOCVALUE                         not used
 

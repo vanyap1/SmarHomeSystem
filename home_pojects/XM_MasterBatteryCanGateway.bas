@@ -10,20 +10,13 @@ Config Osc = Enabled , 32mhzosc = Enabled  , 32khzosc = DISABLED
 Config Sysclock = 32mhz , Prescalea = 1 , Prescalebc = 1_1
 
 $bigstrings
-$forcesofti2c                                               ' with this the software I2C/TWI commands are used when inlcuding i2c.lbx
-$lib "i2c.lbx"
-'   Config Scl = Porte.1
-'   Config Sda = Porte.0
-'   Config I2cdelay = 1
-'   I2cinit
+                                              ' with this the software I2C/TWI commands are used when inlcuding i2c.lbx
+
 
 Config Single = NORMAL  , Digits = 7
 
 
-Config Scl = Portd.1
-Config Sda = Portd.0
-Config I2cdelay = 10
-I2cinit
+
 
 wait 1
 ac_sel alias porta.6 : config ac_sel = output : set ac_sel
@@ -37,9 +30,6 @@ rld alias porta.2 : config rld = output : set rld
 gld alias porta.3 : config gld = output : set gld
 bld alias porta.1 : config bld = output : set bld
 pe5 alias porte.5 : config pe5 = output
-
-
-solarPumpEn alias pine.4 : config solarPumpEn = input
 
 ac_det alias pINb.0 : config ac_det = input
 in1 alias pINb.0 : config in1 = input
@@ -63,32 +53,9 @@ declare function can_write_ (byval _ID as word) as byte
 declare function can_read (byref _ID as word ) as byte
 declare function check_int() as byte
 declare function check_err () as byte
-declare function i2c_scan() as byte
-declare function readADC(byval adc_ch As Byte) as string*6
-
-declare sub read_voltage()
-declare sub read_current()
-declare sub read_shunt()
-declare sub read_power()
-declare sub adc_conversion_start(byval ch as byte)
-declare sub adc_data_read(byval ch as byte)
-declare sub set_pump(byval run as byte)
-
-Const Ads1115_write = &H90
-Const Ads1115_read = &H91
-
-Dim adc_data As Word
-Dim ADC_l_byte As Byte At adc_data Overlay
-Dim ADC_h_byte As Byte At ADC_l_byte + 1 Overlay
-
-dim load_ctrl as byte , power_good as byte , pg as byte
 
 
 
-dim adc_ch(4)as integer  , adc_data_ready as byte
-dim adc_automat as byte
-adc_automat = 1
-adc_data_ready = 0
 
 dim can_output_buffer(16) as byte
 dim can_input_buffer(16) as byte
@@ -114,44 +81,14 @@ const CFG1x125kbps = &h01 : const CFG2x125kbps = &hb1 : const CFG3x125kbps = &h8
 const CFG1x100kbps = &h01 : const CFG2x100kbps = &hb4 : const CFG3x100kbps = &h86
 const CFG1x80kbps = &h01 : const CFG2x80kbps = &hbf : const CFG3x80kbps = &h87
 const CFG1x50kbps = &h03 : const CFG2x50kbps = &hb4 : const CFG3x50kbps = &hb6
-dim data_wr_req as byte
-dim adc_read_req as byte
-
-'_____________________________________________________________________________________KOTEL
-dim kotel_run_mode as byte , kotel_data_valid_timer as byte , highlite_alm as byte
-dim kotel_temp as single  , kotel_temp_tmp as word
-dim kotel_h_lim as byte , kotel_delta as byte , kotel_t_run as byte  , kotel_t_stop as byte  , reset_pump_flg as byte
-dim kotel_status as byte
-
-dim run_pump_lo as word , run_pump_hi as word
-run_pump_lo = 6500
-run_pump_hi = 5000
-'_____________________________________________________________________________________RF
-dim rf_wr_flg as byte
-'_____________________________________________________________________________________Kotel BRIDGE CAN
-
-Dim sys_voltage As Word  , tmp_single as single
-Dim v_sys_l_byte As Byte At sys_voltage Overlay
-Dim v_sys_h_byte As Byte At sys_voltage + 1 Overlay
-
-Dim bat_current As integer
-Dim bat_curr_l_byte As Byte At bat_current Overlay
-Dim bat_curr_h_byte As Byte At bat_current + 1 Overlay
 
 
-Dim pump_current As Word
-Dim pump_current_l_byte As Byte At pump_current Overlay
-Dim pump_current_h_byte As Byte At pump_current + 1 Overlay
-Dim dalas_temp as byte
 dim gateway_data_valid_timer as byte
-dim delta_t as byte , real_t_dot as single , real_t as byte
-'_____________________________________________________________________________________
 
 
 
-
-Config Com5 = 38400 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
-Config Com7 = 38400 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
+Config Com5 = 115200 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
+Config Com7 = 115200 , Mode = 0 , Parity = None , Stopbits = 1 , Databits = 8
 
 Open "com7:" For Binary As #1
 Open "com5:" For Binary As #2
@@ -172,67 +109,6 @@ Enable Tcc0_ovf , Lo
 'Time$ = "14:40:00"
 
 
-dim config_reg as integer, power_conversion_req  as byte , power_conversion_divider as byte
-Dim config_l As Byte At config_reg Overlay
-Dim config_h As Byte At config_reg + 1 Overlay
-
-dim ShuntReg as integer
-Dim ShuntReg_l As Byte At ShuntReg Overlay
-Dim ShuntReg_h As Byte At ShuntReg + 1 Overlay
-
-dim VoltageReg as integer
-Dim VoltageReg_l As Byte At VoltageReg Overlay
-Dim VoltageReg_h As Byte At VoltageReg + 1 Overlay
-
-dim CallibrationReg as word
-Dim CallibrationReg_l As Byte At CallibrationReg Overlay
-Dim CallibrationReg_h As Byte At CallibrationReg + 1 Overlay
-
-
-dim CurrentReg as integer
-Dim CurrentReg_l As Byte At CurrentReg Overlay
-Dim CurrentReg_h As Byte At CurrentReg + 1 Overlay
-
-dim PowerReg as integer
-Dim PowerReg_l As Byte At PowerReg Overlay
-Dim PowerReg_h As Byte At PowerReg + 1 Overlay
-dim power_calculator as single
-dim calc_power as long
-
-dim BatEnergy as Single , calc_bat_energy as single , momental_current as single
-Dim BatEnergy_0 As Byte At BatEnergy Overlay
-Dim BatEnergy_1 As Byte At BatEnergy + 1 Overlay
-Dim BatEnergy_2 As Byte At BatEnergy + 2 Overlay
-Dim BatEnergy_3 As Byte At BatEnergy + 3 Overlay
-dim PowerMeasDelay as byte
-
-
-dim bat_energy_long as long
-Dim bat_energy_long_0 As Byte At bat_energy_long Overlay
-Dim bat_energy_long_1 As Byte At bat_energy_long + 1 Overlay
-Dim bat_energy_long_2 As Byte At bat_energy_long + 2 Overlay
-Dim bat_energy_long_3 As Byte At bat_energy_long + 3 Overlay
-dim BatEnergyLcd as single
-
-Dim can_bat_voltage(2) as byte
-
-dim can_bat_current as integer
-Dim can_bat_current_0 As Byte At can_bat_current Overlay
-Dim can_bat_current_1 As Byte At can_bat_current + 1 Overlay
-
-dim ld_green as byte , ld_yellow as byte, ld_red as byte
-dim alarms as byte
-dim lcd_line1 as string *32 , lcd_line2 as string *32 , tmp_str as string *16
-dim tmp_sin as single
-dim pump_error_counter as byte , pump_current_state as byte
-dim sys_flags as byte , msg_flg as byte
-
-
-dim protectRunTime as byte , runTypeFrom as byte , helperCounter as byte
-
-'Solar water heater related variables <<<<<<<<<<<<<<<<<<<<<
-dim solarModuleTemp as byte
-protectRunTime = 5
 
 
 
@@ -240,39 +116,13 @@ protectRunTime = 5
 
 
 
-power_source alias sys_flags.0
-pump_ok alias sys_flags.1
-kotel_error alias sys_flags.2
-gateway_error alias sys_flags.3
-low_battery alias sys_flags.4
-overload alias sys_flags.5
 
 
-if BatEnergy < 10 then : BatEnergy = 100000 : end if
-PowerMeasDelay = 10
 
 
-CallibrationReg = 2490 '1755
-
-const reset_bit = 0
-const AVG = &b100
-const VBUSCT = &b110
-const VSHCT = &b110
-const run_mode = &b111
-dim real_voltage as single , int_voltage as integer
-dim real_current as single , int_current as integer
 
 
-config_reg = reset_bit
-shift config_reg , left , 6
-config_reg = config_reg + AVG
-shift config_reg , left , 3
-config_reg = config_reg + VBUSCT
-shift config_reg , left , 3
-config_reg = config_reg + VSHCT
-shift config_reg , left , 3
-config_reg = config_reg + run_mode
-power_conversion_req = 0
+
 
 
 status =  init_can()
@@ -284,225 +134,58 @@ Config Priority = Static , Vector = Application , Lo = Enabled       ' the RTC u
 Enable Interrupts
 Start Watchdog
 
+dim socValue as word
 
-I2cstart
-I2cwbyte &h80
-I2cwbyte &h05
-I2cwbyte CallibrationReg_h
-I2cwbyte CallibrationReg_l
-I2cstop
-
-
-I2cstart
-I2cwbyte &h80
-I2cwbyte 0
-I2cwbyte config_h
-I2cwbyte config_l
-I2cstop
-
-print #1 , "                     /                     /2/0/0/"
+'print #1 , "                     /                     /2/0/0/"
 do
 
 
    reset watchdog
 
-   status = check_err()
-   if status.0 = 1 or status.1 = 1 or gateway_data_valid_timer > 250 then
+
+
+   'status = check_err()
+   if gateway_data_valid_timer > 250 then
+      gateway_data_valid_timer = 0
       status =  init_can()
+      print #1 , "CAN reinit"
       waitms 20
       status =  start_can()
-      waitms 20
+      'waitms 20
    end if
 
 
-   if data_wr_req > 0 then
 
-      data_wr_req = 0
-      can_write_data(1) = 1
-      can_write_data(2) = 3
-      status = can_write(&h249)
-      bld = 1
-   end if
 
-   if adc_read_req > 0 then
-      adc_read_req = 0  ''>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      bld = 0   'blue led
-      if ac_det = 0 then
-         if pg > 0 then : decr pg : end if
-      else
-         if pg < 10 then : incr pg : end if
-      end if
-      bld = 1    'blue led
-      if pg = 10 then : power_source = 1 : end if
-      if pg = 0 then : power_source = 0 : end if
-   end if
+
 
 
 
 
    status = can_read(RX_ID)
    if status > 0 then
-      if RX_ID = &h247 then
 
-         kotel_data_valid_timer = 0
-
-         kotel_temp_tmp = can_read_data(2)
-         Shift kotel_temp_tmp , left , 8
-         kotel_temp_tmp = kotel_temp_tmp +  can_read_data(3)
-         kotel_run_mode = can_read_data(1) and 0b00001111
-         real_t_dot = kotel_temp_tmp / 100
-         real_t = round(real_t_dot)
-
-         'run_mode | 5=1W error; 4= ; 3= ; 2=RUN; 1=PRERUN; 0=STOP
-         'run_mode.5 = rel1
-         'run_mode.7 = relay_stat
-         'run_mode.6 = door_sensor
-      end if
-
-      if RX_ID = &h69 then
-         dalas_temp = can_read_data(1)
-         solarModuleTemp = can_read_data(4)
-         gateway_data_valid_timer = 0
-      end if
-
-
-      if RX_ID = &h48 then
-         protectRunTime = can_read_data(1)
+      gateway_data_valid_timer = 0
+      if RX_ID = &h355  or RX_ID = &h356 then
+         print #1 , "CAN:";  hex(RX_ID);":8:"; hex(can_read_data(1)); hex(can_read_data(2)); hex(can_read_data(3)); hex(can_read_data(4)); hex(can_read_data(5)); hex(can_read_data(6)); hex(can_read_data(7)); hex(can_read_data(8))
+         'if RX_ID = &h355 then
+         '   socValue = can_read_data(2)
+         '   Shift socValue , left , 8
+         '   socValue = socValue + can_read_data(1)
+         '   print #1 , socValue
+         'end if
+         'dalas_temp = can_read_data(1)
          'solarModuleTemp = can_read_data(4)
          'gateway_data_valid_timer = 0
       end if
-
    end if
 
 
-   if power_conversion_req = 1 then
-      load_ctrl = Getadc(adca , 0 , &B0_0000_111)
-      read_voltage
-      'read_shunt
-      read_current
-      read_power
-      calc_power = int_voltage  * int_current
-      calc_power = calc_power / 1000
-      momental_current = int_current / 3600
-      batenergy = batenergy +  momental_current
-      if batenergy > 100000 then :  batenergy = 100000 : end if
-
-
-
-      if kotel_data_valid_timer > 40 or gateway_data_valid_timer > 40 then
-         alarms.0 = 1
-      else
-         alarms.0 = 0
-      end if
-
-      if solarPumpEn = 1 then :  solarModuleTemp = 20 : end if
-
-      if solarModuleTemp => 50 then : runTypeFrom.3 = 1 : protectRunTime = 60 : end if
-
-
-      if solarModuleTemp < 40 then : runTypeFrom.3 = 0 : end if
-
-      if real_t => 35 or dalas_temp => 35 then : runTypeFrom.2 = 1 : protectRunTime = 60 : end if
-      if real_t < 30 and dalas_temp < 35 then : runTypeFrom.2 = 0 : end if
-
-      if kotel_run_mode > 0 then : runTypeFrom.1 = 1: else :runTypeFrom.1 = 0: end if
-
-
-      if alarms > 0 then
-         ld_red = 1
-         set_pump(1)
-      else
-         ld_red = 0
-         'if kotel_run_mode > 0 or real_t > 35 or dalas_temp > 35 then
-
-         if runTypeFrom > 0 or protectRunTime > 0 then
-
-
-            set_pump(1)
-         else
-            set_pump(0)
-         end if
-      end if
 
 
 
 
-      ld_green = 1
 
-      tmp_sin = int_voltage/1000
-      tmp_str = fusing(tmp_sin , "0.0") + "V "
-      lcd_line1 = tmp_str
-
-      tmp_sin = int_current/1000
-      tmp_str = fusing(tmp_sin , "0.0") + "A "
-      lcd_line1 = lcd_line1 + tmp_str
-
-      BatEnergyLcd = BatEnergy / 1000
-      tmp_str = fusing(BatEnergyLcd , "0.0") + "Ah    "
-      lcd_line1 = lcd_line1 + tmp_str
-      bat_energy_long = int(batenergy)
-      tmp_sin = int_voltage/100
-      can_bat_voltage(2) = can_bat_voltage(1)
-      can_bat_voltage(1) = int(tmp_sin)
-      can_bat_current = int_current
-
-      if load_ctrl < 30 and pump_current_state = 1 then
-         if pump_error_counter < 10 then
-            incr pump_error_counter
-         end if
-
-      else : pump_error_counter = 0 : end if
-
-
-      if pump_error_counter > 10 then : pump_ok = 1 : alarms.1 = 1: else : pump_ok = 0 :alarms.1 = 0 : end if
-
-      if pump_current_state = 1 then : ld_yellow = 1 : else : ld_yellow = 0 : end if
-                                                                                                        'load_ctrl  solarModuleTemp
-
-      if solarPumpEn = 1 then
-         lcd_line2 = "Tk:" + str(real_t) + " Tp:" + str(dalas_temp) + " Sc:-- "
-      else
-         lcd_line2 = "Tk:" + str(real_t) + " Tp:" + str(dalas_temp) + " Sc:" + str(solarModuleTemp) + " "
-      end if
-
-
-      print #1 , lcd_line1 ;"/"; lcd_line2 ; "/"; ld_red ; "/" ; ld_green ; "/"; ld_yellow ; "/"
-      power_conversion_req = 0
-      PowerMeasDelay = 3
-
-
-      select case msg_flg
-         Case 0 : incr msg_flg
-            if can_bat_voltage(1) > 90 Then
-               can_write_data(1) = can_bat_voltage(1)
-            else
-               can_write_data(1) = can_bat_voltage(2)
-            end if
-            can_write_data(2) = can_bat_current_1
-            can_write_data(3) = can_bat_current_0
-            can_write_data(4) = bat_energy_long_3
-            can_write_data(5) = bat_energy_long_2
-            can_write_data(6) = bat_energy_long_1
-            can_write_data(7) = bat_energy_long_0
-            can_write_data(8) = sys_flags
-            status = can_write(&h033)
-         Case 1 : incr msg_flg
-            can_write_data(1) = load_ctrl
-            can_write_data(2) = 0       'reserved
-            can_write_data(3) = 0       'reserved
-            can_write_data(4) = 0       'reserved
-            can_write_data(5) = 0       'reserved
-            can_write_data(6) = 0       'reserved
-            can_write_data(7) = 0       'reserved
-            can_write_data(8) = sys_flags
-            status = can_write(&h043)
-         Case 2 : incr msg_flg
-
-         Case is >= 3 : msg_flg = 0
-      end select
-
-
-   end if
 
 loop
 
@@ -510,16 +193,8 @@ loop
 
 Tc0_isr:
    Tcc0_per = timer_overload_value
-   adc_read_req = 1
-   if kotel_data_valid_timer < 255 then : incr kotel_data_valid_timer : end if
    if gateway_data_valid_timer < 255 then : incr gateway_data_valid_timer : end if
-   if protectRunTime > 0 and helperCounter = 5 then : decr protectRunTime : helperCounter = 0 : end if
-
-
-   incr power_conversion_divider
-   incr helperCounter
-   if power_conversion_divider > PowerMeasDelay then : power_conversion_req = 1 : power_conversion_divider = 0 : end if
-
+   toggle pe5
    toggle gld
 Return
 
@@ -534,14 +209,8 @@ Return
 
 Sectic:
 
-   data_wr_req = 1
-   'print #1, "test - " ; str(in1) ; str(in2)
-   'if kotel_data_valid_timer < 255 then : incr kotel_data_valid_timer : end if
-   'if tank_data_valid_timer < 255 then : incr tank_data_valid_timer : end if
-   'if eth_available_timer < 255 then : incr eth_available_timer : end if
-   'if can_available_timer < 255 then : incr can_available_timer : end if
-   't_request = 1
-   'toggle t_action.0
+   'data_wr_req = 1
+
 
 
 
@@ -551,96 +220,6 @@ Return
 
 
 
-sub set_pump(byval run as byte)
-   if run = 1 then
-
-      if pg > 8 then        'when poweret from AC line
-         reset ac_sel
-         reset inv_en
-         if int_current > 3000 then
-            reset fan
-         else
-            set fan
-         end if
-      end if
-
-      if pg < 2 then        'when powered from invertor
-         set ac_sel
-         set inv_en
-         reset fan
-
-      end if
-      pump_current_state = 1
-   else                      'when pump is disable
-      set ac_sel
-      reset inv_en
-      if int_current > 3000 then
-         reset fan
-      else
-         set fan
-      end if
-      pump_current_state = 0
-   end if
-
-
-
-
-end sub
-
-
-
-
-sub read_voltage()
-   I2cstart
-   I2cwbyte &h80
-   I2cwbyte &h02
-   I2cstart
-   I2cwbyte &h81
-   I2crbyte VoltageReg_h , Ack
-   I2crbyte VoltageReg_l , Nack
-   I2cstop
-   real_voltage = VoltageReg * 1.24883677647497
-   int_voltage = int(real_voltage)
-
-end sub
-sub read_shunt()
-   I2cstart
-   I2cwbyte &h80
-   I2cwbyte &h01
-   I2cstart
-   I2cwbyte &h81
-   I2crbyte ShuntReg_h , Ack
-   I2crbyte ShuntReg_l , Nack
-   I2cstop
-   'waitms 10
-end sub
-sub read_current()
-   I2cstart
-   I2cwbyte &h80
-   I2cwbyte &h04
-   I2cstart
-   I2cwbyte &h81
-   I2crbyte CurrentReg_h , Ack
-   I2crbyte CurrentReg_l , Nack
-   I2cstop
-   real_current = CurrentReg' / 1.887
-   ''real_current = abs(real_current)
-   int_current  = int(real_current)
-   'waitms 10
-end sub
-sub read_power()
-   I2cstart
-   I2cwbyte &h80
-   I2cwbyte &h03
-   I2cstart
-   I2cwbyte &h81
-   I2crbyte PowerReg_h , Ack
-   I2crbyte PowerReg_l , Nack
-   power_calculator = PowerReg / 40
-   PowerReg = power_calculator * 1000
-   I2cstop
-   'waitms 10
-end sub
 
 
 
@@ -660,89 +239,10 @@ end sub
 
 
 
-function i2c_scan() as byte
-   local b as byte
-   Print #1 , "Scan start"
-   For B = 0 To 254 Step 2                                     'for all odd addresses
-      I2cstart                                                 'send start
-      I2cwbyte B                                               'send address
-      If Err = 0 Then                                           'we got an ack
-         Print #1 , "Slave at : " ; B ; " hex : " ; Hex(b) ; " bin : " ; Bin(b)
-      End If
-      I2cstop                                                   'free bus
-   Next
-   Print #1 , "End Scan"
-   i2c_scan = 1
-end function
 
 
-sub adc_conversion_start(byval ch as byte)
-   local ch_tmp as byte
-   select case ch
-      case 0 : ch_tmp = &B11000010
-      case 1 : ch_tmp = &B11010010
-      case 2 : ch_tmp = &B11101000
-      case 3 : ch_tmp = &B11110010    '0010
-   end select
-   I2cstart
-   I2cwbyte Ads1115_write
-   I2cwbyte 1
-   I2cwbyte ch_tmp
-   I2cwbyte &B10000011
-   I2cstop
-end sub
 
-sub adc_data_read(byval ch as byte)
-   I2cstart
-   I2cwbyte Ads1115_write
-   I2cwbyte 0
-   I2cstart
-   I2cwbyte Ads1115_read
-   I2crbyte ADC_h_byte , Ack
-   I2crbyte ADC_l_byte , Nack
-   I2cstop
-   if adc_data.15 = 1 Then
-      adc_ch(ch) = 0
-   else
-      adc_ch(ch) = adc_data
-   end if
 
-end sub
-
-function readADC(byval adc_ch As Byte) as string*6
-   local ch as byte
-   select case adc_ch
-      case 0 : ch = &B11000010
-      case 1 : ch = &B11010010
-      case 2 : ch = &B11100010
-      case 3 : ch = &B11110010    '0010
-   end select
-   I2cstart
-   I2cwbyte Ads1115_write
-   I2cwbyte 1
-   I2cwbyte ch
-   I2cwbyte &B10000011
-   I2cstop
-   Waitms 40
-   I2cstart
-   I2cwbyte Ads1115_write
-   I2cwbyte 0
-   I2cstart
-   I2cwbyte Ads1115_read
-   I2crbyte ADC_h_byte , Ack
-   I2crbyte ADC_l_byte , Nack
-   I2cstop
-
-'print bin(adc_data)
-   if adc_data.15 = 1 Then
-
-      adc_data = 65535 - adc_data
-      readADC = "-" + str(adc_data)
-   else
-      readADC = "+" + str(adc_data)
-
-   end if
-end function
 
 
 function can_filter (byval _mask as word) as byte
